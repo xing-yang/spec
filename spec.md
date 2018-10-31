@@ -958,14 +958,16 @@ message Volume {
 }
 
 message TopologyRequirement {
-  // Specifies the list of topologies the provisioned volume MUST be
-  // accessible from.
+  // Specifies the list of topologies the provisioned resource MUST be
+  // accessible from. The resource can be either a volume or a snapshot.
+  // The examples given below use volume but can be applied to snapshot
+  // as well.
   // This field is OPTIONAL. If TopologyRequirement is specified either
   // requisite or preferred or both MUST be specified.
-  //
+  // 
   // If requisite is specified, the provisioned volume MUST be
   // accessible from at least one of the requisite topologies.
-  //
+  // 
   // Given
   //   x = number of topologies provisioned volume is accessible from
   //   n = number of requisite topologies
@@ -1021,7 +1023,7 @@ message TopologyRequirement {
   //
   // This field is OPTIONAL. If TopologyRequirement is specified either
   // requisite or preferred or both MUST be specified.
-  //
+  // 
   // An SP MUST attempt to make the provisioned volume available using
   // the preferred topologies in order from first to last.
   //
@@ -1036,7 +1038,7 @@ message TopologyRequirement {
   // If the list of requisite topologies is specified and the SP is
   // unable to to make the provisioned volume available from any of the
   // requisite topologies it MUST fail the CreateVolume call.
-  //
+  // 
   // Example 1:
   // Given a volume should be accessible from a single zone, and
   // requisite =
@@ -1664,6 +1666,11 @@ message Snapshot {
   // system. This field is REQUIRED.
   .google.protobuf.Timestamp creation_time = 4;
 
+  // Indicates if a snapshot is ready to use as a
+  // `volume_content_source` in a `CreateVolumeRequest`. The default
+  // value is false. This field is REQUIRED.
+  bool ready_to_use = 5;
+
   // Specifies where (regions, zones, racks, etc.) the provisioned
   // snapshot is accessible from.
   // A plugin that returns this field MUST also set the
@@ -1677,12 +1684,6 @@ message Snapshot {
   // This field is OPTIONAL. If it is not specified, the CO MAY assume
   // the snapshot is equally accessible from all nodes in the cluster.
   repeated Topology accessible_topology = 6;
-}
-
-  // Indicates if a snapshot is ready to use as a
-  // `volume_content_source` in a `CreateVolumeRequest`. The default
-  // value is false. This field is REQUIRED.
-  bool ready_to_use = 5;
 }
 ```
 
@@ -2308,9 +2309,8 @@ message NodeGetInfoResponse {
   // A plugin that returns this field MUST also set the
   // VOLUME_ACCESSIBILITY_CONSTRAINTS plugin capability.
   // COs MAY use this information along with the topology information
-  // returned in CreateVolumeResponse CreateSnapshotResponse to ensure
-  // that a given volume or snapshot is accessible from a given node
-  // when scheduling workloads.
+  // returned in CreateVolumeResponse to ensure that a given volume is
+  // accessible from a given node when scheduling workloads.
   // This field is OPTIONAL. If it is not specified, the CO MAY assume
   // the node is not subject to any topological constraint, and MAY
   // schedule workloads that reference any volume V, such that there are
